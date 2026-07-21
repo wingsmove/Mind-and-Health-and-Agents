@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import './App.css'
 import { API, type responseMessage } from './api'
 
@@ -13,7 +15,7 @@ const EMPTY_RESPONSE_MESSAGE: responseMessageForm = {
 }
 
 function App() {
-  
+  const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string>('')
   const [res, setRes] = useState<responseMessage>(EMPTY_RESPONSE_MESSAGE)
 
@@ -24,6 +26,7 @@ function App() {
   async function getReport(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setRes(EMPTY_RESPONSE_MESSAGE)
+    setIsLoading(true)
     try{
       const resPost = await fetch(`${API}/analyze`, { 
         method: "POST" ,
@@ -40,6 +43,8 @@ function App() {
     } catch (error) {
       console.error('Error getting report:', error)
       setRes(EMPTY_RESPONSE_MESSAGE)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -50,27 +55,27 @@ function App() {
         <h2>Chat with the Agent</h2>
         <form onSubmit={getReport}>
           <textarea placeholder="Enter your message here" onChange={handleMessageChange} value={message} />
-          <button type="submit">Send</button>
+          <button type="submit" disabled={isLoading}>{isLoading ? 'Getting report...' : 'Send'}</button>
         </form>
       </section>
       <section className="card">
         <h2>Messages</h2>
-        <div id="messages">
-          {res.content.length === 0 ? (<p className="message-content">No message yet</p>
-            ) : (
-            <p className="message-content">{res.content}</p>
-            )
-          }
+        <div id="messages" className="markdown">
+          {res.content.length === 0 ? (
+            <p className="message-content">No message yet</p>
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{res.content}</ReactMarkdown>
+          )}
         </div>
       </section>
       <section className="card">
         <h2>Report</h2>
-        <div id="report">
-          {res.report.length === 0 ? (<p className="report-content">No report yet</p>
-            ) : (
-            <p className="report-content">{res.report}</p>
-            )
-          }
+        <div id="report" className="markdown">
+          {res.report.length === 0 ? (
+            <p className="report-content">No report yet</p>
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{res.report}</ReactMarkdown>
+          )}
         </div>
       </section>
     </main>
