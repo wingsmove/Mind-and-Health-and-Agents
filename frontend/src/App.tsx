@@ -52,7 +52,7 @@ function App() {
     <main className="app">
       <h1>Mind &amp; Health &amp; Agents</h1>
       <section className="card">
-        <h2>Chat with the Agent</h2>
+        <h2>Chat with the AI Agent</h2>
         <form onSubmit={getReport}>
           <textarea placeholder="Enter your message here" onChange={handleMessageChange} value={message} />
           <button type="submit" disabled={isLoading}>{isLoading ? 'Getting report...' : 'Send'}</button>
