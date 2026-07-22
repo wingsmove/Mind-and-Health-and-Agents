@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from agents import Agent, Runner, set_default_openai_client
+from agents import Agent, Runner, WebSearchTool, set_default_openai_client
 from openai import AsyncOpenAI
 
 from app.core.config import get_settings
@@ -257,7 +257,7 @@ class AgentService:
         self,
         *,
         name: str = "Message_Agent",
-        instructions: str = Message_INSTRUCTIONS,
+        instructions: str = MESSAGE_INSTRUCTIONS,
         model: str | None = None,
         **kwargs: object,
     ) -> Agent:
@@ -291,10 +291,22 @@ def get_agent_service() -> AgentService:
 
 @lru_cache
 def _get_agents() -> tuple[Agent, Agent]:
-    """Lazily build and cache the message/report agents."""
+    """Lazily build and cache the message/report agents.
+
+    Both agents get a hosted web-search tool so they can look up
+    up-to-date mental-health resources (research papers, ICD-11, DSM-5, etc.).
+    """
     service = get_agent_service()
-    message_agent = service.create_agent(name="Message_Agent", instructions=Message_INSTRUCTIONS)
-    report_agent = service.create_agent(name="Report_Agent", instructions=Report_INSTRUCTIONS)
+    message_agent = service.create_agent(
+        name="Message_Agent",
+        instructions=MESSAGE_INSTRUCTIONS,
+        tools=[WebSearchTool()],
+    )
+    report_agent = service.create_agent(
+        name="Report_Agent",
+        instructions=REPORT_INSTRUCTIONS,
+        tools=[WebSearchTool()],
+    )
     return message_agent, report_agent
 
 
